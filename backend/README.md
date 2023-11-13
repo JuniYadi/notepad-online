@@ -13,7 +13,7 @@ python -m venv .venv
 - Windows
 
 ```
-. .venv/Scripts/activate.bat
+call .venv/Scripts/activate.bat
 ```
 
 - Linux
