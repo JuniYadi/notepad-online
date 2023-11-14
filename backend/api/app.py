@@ -5,12 +5,11 @@ from ulid import ULID
 
 app = Chalice(app_name='api')
 
-
 @app.route('/')
 def index():
     return {'hello': 'world'}
 
-@app.route('/notes', methods=['POST'])
+@app.route('/notes', methods=['POST'], cors=True, content_types=['application/json'])
 def notes_create():
     body = app.current_request.json_body
 
@@ -32,6 +31,8 @@ def notes_create():
     save = store({
         'pk': 'public',
         'sk': id,
+        'id': id,
+        'status': 'public',
         'title': body['title'],
         'content': body['content'],
         'ttl': ttl
@@ -47,7 +48,7 @@ def notes_create():
         }
     }
 
-@app.route('/notes/{note_id}', methods=['GET'])
+@app.route('/notes/{note_id}', methods=['GET'], cors=True)
 def notes_show(note_id):
     return show({'pk': 'public', 'sk': note_id})
 

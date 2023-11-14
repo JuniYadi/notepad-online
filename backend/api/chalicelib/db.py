@@ -22,6 +22,11 @@ def store(data):
 def show(data):
     try:
       query = table.get_item(Key=data)
+
+      # Delete Object from response
+      del query['Item']['pk']
+      del query['Item']['sk']
+
       return query['Item']
     except Exception as e:
       print(f"Error Retrieving Data: {e}")
