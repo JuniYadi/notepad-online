@@ -4,8 +4,9 @@ import Form from "react-bootstrap/esm/Form";
 import Button from "react-bootstrap/esm/Button";
 import axios from "axios";
 import useSWR from "swr";
+import { Helmet } from "react-helmet-async";
 
-import { API_URL } from "../../statics";
+import { API_URL, APP_NAME } from "../../statics";
 
 export default function NotesForm({ action, id }) {
   const [notes, setNotes] = useState({
@@ -61,6 +62,9 @@ export default function NotesForm({ action, id }) {
 
   return (
     <>
+      <Helmet>
+        <title>{data?.title || APP_NAME}</title>
+      </Helmet>
       <Form>
         <Form.Group className="mb-3" controlId="title">
           <Form.Label>Title</Form.Label>
