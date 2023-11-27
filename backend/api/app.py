@@ -2,8 +2,14 @@ import time
 from chalice import Chalice
 from chalicelib.db import store, show
 from ulid import ULID
+from chalice import CognitoUserPoolAuthorizer
 
 app = Chalice(app_name='api')
+
+authorizer = CognitoUserPoolAuthorizer(
+    'notepad-tugas-dev-prod',
+    provider_arns=['arn:aws:cognito-idp:ap-southeast-1:057675665881:userpool/ap-southeast-1_g76VANI61']
+)
 
 @app.route('/')
 def index():
@@ -23,7 +29,7 @@ def notes_create():
         return {'message': 'Missing content'}
     
     ttl = None
-    if body['ttl']:
+    if 'ttl' in body and body['ttl'] != '':
         # get number of minutes and convert to timestamp
         ttl = int(body['ttl']) * 60 + int(time.time())
 
@@ -52,23 +58,23 @@ def notes_create():
 def notes_show(note_id):
     return show({'pk': 'public', 'sk': note_id})
 
-@app.route('/v1/notes', methods=['GET'])
+@app.route('/v1/notes', methods=['GET'], cors=True, authorizer=authorizer)
 def notes_v1_lists():
     return {'notes': 'list'}
 
-@app.route('/v1/notes', methods=['POST'])
+@app.route('/v1/notes', methods=['POST'], cors=True, authorizer=authorizer)
 def notes_v1_create():
     return {'notes': 'create'}
 
-@app.route('/v1/notes/{note_id}', methods=['GET'])
+@app.route('/v1/notes/{note_id}', methods=['GET'], cors=True, authorizer=authorizer)
 def notes_v1_show(note_id):
     return {'notes': 'show'}
 
-@app.route('/v1/notes/{note_id}', methods=['PUT'])
+@app.route('/v1/notes/{note_id}', methods=['PUT'], cors=True, authorizer=authorizer)
 def notes_v1_update(note_id):
     return {'notes': 'update'}
 
-@app.route('/v1/notes/{note_id}', methods=['DELETE'])
+@app.route('/v1/notes/{note_id}', methods=['DELETE'], cors=True, authorizer=authorizer)
 def notes_v1_delete(note_id):
     return {'notes': 'delete'}
 
