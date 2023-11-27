@@ -4,8 +4,10 @@ resource "aws_cognito_user_pool" "user_pool" {
   username_configuration {
     case_sensitive = false
   }
+  
   username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
+
   password_policy {
     minimum_length                   = 8
     require_lowercase                = true
@@ -21,7 +23,8 @@ resource "aws_cognito_user_pool" "user_pool" {
   }
 
   admin_create_user_config {
-    allow_admin_create_user_only = true
+    # Allow Self Sign Up
+    allow_admin_create_user_only = false
     invite_message_template {
       sms_message   = "Hi {username}, your temporary password is {####}. ${var.APP_NAME}"
       email_subject = "Your Account at ${var.APP_DOMAIN}"
