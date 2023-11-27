@@ -32,6 +32,15 @@ export default function Notes() {
       // get id from response
       const id = reqs?.data?.data?.id;
 
+      // get from localstorage
+      const getNotes = localStorage.getItem("notes") || "[]";
+      // convert to array
+      const notes = JSON.parse(getNotes);
+      // push new id
+      notes.push(id);
+      // save to localstorage
+      localStorage.setItem("notes", JSON.stringify(notes));
+
       // redirect to view page
       window.location.href = `/${id}`;
     } else {
@@ -69,6 +78,7 @@ export default function Notes() {
               })
             }
           >
+            <option value="">Select Expired Time</option>
             <option value="5">5 Minutes</option>
             <option value="15">15 Minutes</option>
             <option value="30">30 Minutes</option>
