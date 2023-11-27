@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import Form from "react-bootstrap/esm/Form";
 import Button from "react-bootstrap/esm/Button";
 import axios from "axios";
@@ -16,13 +16,16 @@ dayjs.extend(timezone);
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
-import { API_URL, APP_NAME } from "../../statics";
+import { API_URL, APP_NAME } from "../../../statics";
+import { UserContext } from "../../../contexts";
 
 export default function NotesForm({ action, id }) {
+  const user = useContext(UserContext);
   const [notes, setNotes] = useState({
     title: "",
     content: "",
     ttl: "",
+    status: "private",
   });
 
   const [loading, setLoading] = useState(false);
@@ -33,11 +36,13 @@ export default function NotesForm({ action, id }) {
     e.preventDefault();
 
     setLoading(true);
+    const url = notes.isPublic ? `/p` : `/v`;
 
-    const reqs = await axios.post(API_URL + "/notes", notes, {
+    const reqs = await axios.post(API_URL + "/v1/notes", notes, {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        Authorization: `Bearer ${user.tokens}`,
       },
     });
 
@@ -54,13 +59,17 @@ export default function NotesForm({ action, id }) {
       const id = reqs?.data?.data?.id;
 
       // redirect to view page
-      window.location.href = `/${id}`;
+      window.location.href = `${url}/${id}`;
     } else {
       alert("Failed");
     }
   };
 
-  const { data } = useSWR(!isEdit ? [`${API_URL}/notes/${id}`] : null);
+  const { data } = useSWR(
+    !isEdit && user && user.tokens
+      ? [`${API_URL}/v1/notes/${id}`, user.tokens]
+      : null
+  );
 
   useEffect(() => {
     if (action === "show" && data) {
@@ -95,6 +104,27 @@ export default function NotesForm({ action, id }) {
             value={data?.content}
             onChange={(e) => setNotes({ ...notes, content: e.target.value })}
           />
+        </Form.Group>
+
+        <Form.Group className="mb-3" controlId="expired">
+          <Form.Label>Expired</Form.Label>
+          <Form.Select
+            aria-label="Select Expired"
+            disabled={readOnly}
+            onChange={(e) =>
+              setNotes({
+                ...notes,
+                status: e.target.value,
+              })
+            }
+          >
+            <option value="private" selected={data?.status === "private"}>
+              Not Public (Private)
+            </option>
+            <option value="public" selected={data?.status === "public"}>
+              Public
+            </option>
+          </Form.Select>
         </Form.Group>
 
         {action === "show" && (

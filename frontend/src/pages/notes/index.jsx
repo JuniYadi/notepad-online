@@ -42,7 +42,7 @@ export default function Notes() {
       localStorage.setItem("notes", JSON.stringify(notes));
 
       // redirect to view page
-      window.location.href = `/${id}`;
+      window.location.href = `/p/${id}`;
     } else {
       alert("Failed");
     }

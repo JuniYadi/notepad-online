@@ -75,12 +75,12 @@ const AppPriv = () => {
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
               <Nav.Link as={Link} to="/app">
-                Home
-              </Nav.Link>
-              <Nav.Link as={Link} to="/app/notes">
                 My Notes
               </Nav.Link>
-              <NavDropdown title="Help" id="collapsible-nav-dropdown">
+              <Nav.Link as={Link} to="/app/create">
+                Create New Note
+              </Nav.Link>
+              {/* <NavDropdown title="Help" id="collapsible-nav-dropdown">
                 <NavDropdown.Item href="#action/3.2">
                   Email Support
                 </NavDropdown.Item>
@@ -88,14 +88,16 @@ const AppPriv = () => {
                 <NavDropdown.Item href="#action/3.4">
                   Call Support
                 </NavDropdown.Item>
-              </NavDropdown>
+              </NavDropdown> */}
             </Nav>
             <Nav>
-              <img
-                src={user?.gravatar}
-                alt="avatar"
-                className="rounded-circle me-2"
-              />
+              <picture>
+                <img
+                  src={user?.gravatar}
+                  alt="avatar"
+                  className="rounded-circle img-thumbnail hide-on-mobile me-2"
+                />
+              </picture>
               <NavDropdown title={user?.email} id="collapsible-nav-dropdown">
                 <NavDropdown.Item href="#grant">
                   Status {user?.isVerified ? "Verified ✅" : "Unverified ❌"}

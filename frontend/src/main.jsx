@@ -31,7 +31,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         value={{
           refreshInterval: 30000,
           suspense: false,
-          fetcher: (url, token, queryParam) =>
+          fetcher: ([url, token, queryParam]) =>
             fetch(
               queryParam ? `${url}?${queryParam}` : url,
               token
