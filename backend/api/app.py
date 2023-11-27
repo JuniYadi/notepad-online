@@ -1,8 +1,9 @@
-import time
 from chalice import Chalice
 from chalicelib.db import query, store, show
 from chalicelib.id import genID
 from chalice import CognitoUserPoolAuthorizer
+from datetime import datetime
+import time
 import json
 
 app = Chalice(app_name='api')
@@ -42,7 +43,9 @@ def notes_create():
         'status': 'public',
         'title': body['title'],
         'content': body['content'],
-        'ttl': ttl
+        'ttl': ttl,
+        'createdAt': datetime.now().isoformat(),
+        'updatedAt': datetime.now().isoformat()
     })
 
     if save == False:
@@ -105,7 +108,9 @@ def notes_v1_create():
         'status': body['status'],
         'title': body['title'],
         'content': body['content'],
-        'ttl': ttl
+        'ttl': ttl,
+        'createdAt': datetime.now().isoformat(),
+        'updatedAt': datetime.now().isoformat()
     })
 
     if save == False:
