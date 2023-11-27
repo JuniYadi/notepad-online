@@ -27,7 +27,7 @@ export const App = () => {
               <Nav.Link href="#pricing">My Notes</Nav.Link>
             </Nav>
             <Nav>
-              <Nav.Link as={Link} to="/app/notes">
+              <Nav.Link as={Link} to="/app">
                 Login
               </Nav.Link>
             </Nav>
