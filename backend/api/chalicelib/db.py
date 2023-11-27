@@ -4,12 +4,22 @@ from boto3.dynamodb.conditions import Key, Attr
 ddb = boto3.resource('dynamodb')
 table = ddb.Table('notepad-prod')
 
-def query(lastKey = None):
-    if lastKey is None:
-        response = table.scan()
-    else:
-        response = table.scan(ExclusiveStartKey=lastKey)
-    return response
+def query(pk, sk):
+    try:
+      query = table.query(
+        KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk)
+      )
+      
+      # Delete Object from response
+      for item in query['Items']:
+        del item['pk']
+        del item['sk']
+
+      return query['Items']
+    
+    except Exception as e:
+      print(f"Error Querying Data: {e}")
+      return False
 
 def store(data):
     try:  
