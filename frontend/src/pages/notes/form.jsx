@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
-
 import Form from "react-bootstrap/esm/Form";
 import Button from "react-bootstrap/esm/Button";
 import axios from "axios";
 import useSWR from "swr";
 import { Helmet } from "react-helmet-async";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import duration from "dayjs/plugin/duration";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
 
 import { API_URL, APP_NAME } from "../../statics";
 
@@ -86,6 +96,13 @@ export default function NotesForm({ action, id }) {
             onChange={(e) => setNotes({ ...notes, content: e.target.value })}
           />
         </Form.Group>
+
+        {action === "show" && (
+          <p>
+            Expired:{" "}
+            {data?.ttl > 0 ? dayjs.unix(data?.ttl).fromNow() : "Permanent"}
+          </p>
+        )}
 
         {action === "insert" && (
           <Form.Group className="mb-3" controlId="expired">
