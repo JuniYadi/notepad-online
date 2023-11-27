@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "~bootstrap": path.resolve("node_modules/bootstrap"),
+      "./runtimeConfig": "./runtimeConfig.browser",
     },
   },
   plugins: [react()],
