@@ -106,10 +106,10 @@ export default function NotesForm({ action, id }) {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="expired">
-          <Form.Label>Expired</Form.Label>
+        <Form.Group className="mb-3" controlId="status">
+          <Form.Label>Status</Form.Label>
           <Form.Select
-            aria-label="Select Expired"
+            aria-label="Select Status"
             disabled={readOnly}
             onChange={(e) =>
               setNotes({
