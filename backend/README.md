@@ -27,3 +27,11 @@ call .venv/Scripts/activate.bat
 ```
 pip install -r requirements.txt
 ```
+
+
+### Running
+
+```
+cd backend/api
+chalice local --autoreload
+```
