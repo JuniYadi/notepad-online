@@ -41,7 +41,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                     },
                   }
                 : undefined
-            ).then((res) => res.json()),
+            ).then((res) => {
+              if (res.ok) {
+                return res.json();
+              } else {
+                throw res;
+              }
+            }),
         }}
       >
         <RouterProvider router={router} />
