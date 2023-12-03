@@ -61,10 +61,7 @@ export default function NotesForm({ action, id }) {
     }
   };
 
-  const {
-    data: { data },
-    error,
-  } = useSWR(!isEdit ? [`${API_URL}/notes/${id}`] : null);
+  const { data, error } = useSWR(!isEdit ? [`${API_URL}/notes/${id}`] : null);
 
   useEffect(() => {
     if (action === "show" && data) {
@@ -81,7 +78,7 @@ export default function NotesForm({ action, id }) {
   return (
     <>
       <Helmet>
-        <title>{data?.title || APP_NAME}</title>
+        <title>{data?.data?.title || APP_NAME}</title>
       </Helmet>
 
       <Form>
@@ -90,7 +87,7 @@ export default function NotesForm({ action, id }) {
           <Form.Control
             type="text"
             placeholder="My Random Notes"
-            value={data?.title}
+            value={data?.data?.title}
             disabled={readOnly}
             onChange={(e) => setNotes({ ...notes, title: e.target.value })}
           />
@@ -101,7 +98,7 @@ export default function NotesForm({ action, id }) {
             as="textarea"
             rows={10}
             disabled={readOnly}
-            value={data?.content}
+            value={data?.data?.content}
             onChange={(e) => setNotes({ ...notes, content: e.target.value })}
           />
         </Form.Group>
@@ -110,11 +107,14 @@ export default function NotesForm({ action, id }) {
           <>
             <p>
               Expired:{" "}
-              {data?.ttl > 0 ? dayjs.unix(data?.ttl).fromNow() : "Permanent"}
+              {data?.data?.data?.ttl > 0
+                ? dayjs.unix(data?.data?.ttl).fromNow()
+                : "Permanent"}
             </p>
             <p>
-              Created At: {dayjs(data?.createdAt).format("DD/MM/YYYY HH:mm:ss")}{" "}
-              ({dayjs(data?.createdAt).fromNow()})
+              Created At:{" "}
+              {dayjs(data?.data?.createdAt).format("DD/MM/YYYY HH:mm:ss")} (
+              {dayjs(data?.data?.createdAt).fromNow()})
             </p>
           </>
         )}
@@ -132,28 +132,28 @@ export default function NotesForm({ action, id }) {
                 })
               }
             >
-              <option value="5" selected={data?.ttl === 5}>
+              <option value="5" selected={data?.data?.ttl === 5}>
                 5 Minutes
               </option>
-              <option value="15" selected={data?.ttl === 15}>
+              <option value="15" selected={data?.data?.ttl === 15}>
                 15 Minutes
               </option>
-              <option value="30" selected={data?.ttl === 30}>
+              <option value="30" selected={data?.data?.ttl === 30}>
                 30 Minutes
               </option>
-              <option value="60" selected={data?.ttl === 60}>
+              <option value="60" selected={data?.data?.ttl === 60}>
                 1 Hour
               </option>
-              <option value="1440" selected={data?.ttl === 1440}>
+              <option value="1440" selected={data?.data?.ttl === 1440}>
                 1 Day
               </option>
-              <option value="10080" selected={data?.ttl === 10080}>
+              <option value="10080" selected={data?.data?.ttl === 10080}>
                 1 Week
               </option>
-              <option value="43200" selected={data?.ttl === 43200}>
+              <option value="43200" selected={data?.data?.ttl === 43200}>
                 1 Month
               </option>
-              <option value="0" selected={!data?.ttl}>
+              <option value="0" selected={!data?.data?.ttl}>
                 Permanent
               </option>
             </Form.Select>
@@ -171,7 +171,7 @@ export default function NotesForm({ action, id }) {
           </Button>
         )}
 
-        {readOnly && data?.status !== "public" && (
+        {readOnly && data?.data?.status !== "public" && (
           <Button
             variant="warning"
             onClick={() => {

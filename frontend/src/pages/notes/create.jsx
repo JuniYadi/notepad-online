@@ -23,23 +23,29 @@ export default function Notes() {
     });
 
     if (reqs.status === 200) {
-      setNotes({
-        title: "",
-        content: "",
-        ttl: "",
-      });
-
       // get id from response
       const id = reqs?.data?.data?.id;
 
       // get from localstorage
       const getNotes = localStorage.getItem("notes") || "[]";
       // convert to array
-      const notes = JSON.parse(getNotes);
+      const newNotes = JSON.parse(getNotes);
       // push new id
-      notes.push(id);
+      newNotes.push({
+        id: id,
+        createdAt: new Date().toISOString(),
+        status: "public",
+        title: notes.title,
+      });
       // save to localstorage
-      localStorage.setItem("notes", JSON.stringify(notes));
+      localStorage.setItem("notes", JSON.stringify(newNotes));
+
+      // reset form
+      setNotes({
+        title: "",
+        content: "",
+        ttl: "",
+      });
 
       // redirect to view page
       window.location.href = `/p/${id}`;

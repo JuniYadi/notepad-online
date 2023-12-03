@@ -1,99 +1,71 @@
-import { useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { Table, Button } from "react-bootstrap";
 
-import Form from "react-bootstrap/esm/Form";
-import Button from "react-bootstrap/esm/Button";
-import axios from "axios";
-import { API_URL } from "../../statics";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import duration from "dayjs/plugin/duration";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
+
+import { APP_NAME } from "../../statics";
+import { Link } from "react-router-dom";
 
 export default function Notes() {
-  const [notes, setNotes] = useState({
-    title: "",
-    content: "",
-    ttl: "",
-  });
+  const getNotes = localStorage.getItem("notes");
+  const notes = JSON.parse(getNotes);
 
-  const submitForm = async (e) => {
+  const handleClearData = (e) => {
     e.preventDefault();
 
-    const reqs = await axios.post(`${API_URL}/notes`, notes, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (reqs.status === 200) {
-      setNotes({
-        title: "",
-        content: "",
-        ttl: "",
-      });
-
-      // get id from response
-      const id = reqs?.data?.data?.id;
-
-      // get from localstorage
-      const getNotes = localStorage.getItem("notes") || "[]";
-      // convert to array
-      const notes = JSON.parse(getNotes);
-      // push new id
-      notes.push(id);
-      // save to localstorage
-      localStorage.setItem("notes", JSON.stringify(notes));
-
-      // redirect to view page
-      window.location.href = `/p/${id}`;
-    } else {
-      alert("Failed");
-    }
+    localStorage.removeItem("notes");
+    window.location.reload();
   };
 
   return (
     <>
-      <Form>
-        <Form.Group className="mb-3" controlId="title">
-          <Form.Label>Title</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="My Random Notes"
-            onChange={(e) => setNotes({ ...notes, title: e.target.value })}
-          />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-          <Form.Label>Notes</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={10}
-            onChange={(e) => setNotes({ ...notes, content: e.target.value })}
-          />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-          <Form.Label>Expired</Form.Label>
-          <Form.Select
-            aria-label="Select Expired"
-            onChange={(e) =>
-              setNotes({
-                ...notes,
-                ttl: e.target.value > 0 ? e.target.value : null,
-              })
-            }
-          >
-            <option value="">Select Expired Time</option>
-            <option value="5">5 Minutes</option>
-            <option value="15">15 Minutes</option>
-            <option value="30">30 Minutes</option>
-            <option value="60">1 Hour</option>
-            <option value="1440">1 Day</option>
-            <option value="10080">1 Week</option>
-            <option value="43200">1 Month</option>
-            <option value="0">Permanent</option>
-          </Form.Select>
-        </Form.Group>
+      <Helmet>
+        <title>{`My Notes - ${APP_NAME}`}</title>
+      </Helmet>
 
-        <Button variant="primary" type="submit" onClick={submitForm}>
-          Save
-        </Button>
-      </Form>
+      <h3>My Notes</h3>
+
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Created At</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {notes?.map((note) => (
+            <tr key={note.id}>
+              <td>{note.id}</td>
+              <td>{note.title}</td>
+              <td>{dayjs(note.createdAt).format("DD/MM/YYYY HH:mm:ss")}</td>
+              <td>
+                <Link
+                  to={
+                    note.status === "private"
+                      ? `/v/${note.id}`
+                      : `/p/${note.id}`
+                  }
+                >
+                  View
+                </Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <Button onClick={handleClearData}>Clear Data</Button>
     </>
   );
 }
