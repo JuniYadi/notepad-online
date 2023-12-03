@@ -4,11 +4,16 @@ from boto3.dynamodb.conditions import Key, Attr
 ddb = boto3.resource('dynamodb')
 table = ddb.Table('notepad-prod')
 
-def query(pk, sk):
+def query(pk, sk=None):
     try:
-      query = table.query(
-        KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk)
-      )
+      if sk is None:
+        query = table.query(
+          KeyConditionExpression=Key('pk').eq(pk)
+        )
+      else:
+        query = table.query(
+          KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk)
+        )
       
       # Delete Object from response
       for item in query['Items']:
@@ -30,14 +35,13 @@ def store(data):
       return False
 
 def show(data):
-    try:
-      query = table.get_item(Key=data)
+    query = table.get_item(Key=data)
 
-      # Delete Object from response
-      del query['Item']['pk']
-      del query['Item']['sk']
+    if 'Item' not in query:
+        return False
 
-      return query['Item']
-    except Exception as e:
-      print(f"Error Retrieving Data: {e}")
-      return e
+    # Delete Object from response
+    del query['Item']['pk']
+    del query['Item']['sk']
+
+    return query['Item']
