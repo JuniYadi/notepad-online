@@ -56,6 +56,10 @@ const AppPriv = () => {
         isAdmin: groups.includes("administrator"),
         tokens: idToken?.toString(),
       });
+
+      if (groups.includes("administrator")) {
+        window.location.href = "/admin?view=public";
+      }
     };
 
     getUser();
@@ -89,6 +93,9 @@ const AppPriv = () => {
                   >
                     Isi Survey
                   </Nav.Link>
+                  <Nav.Link as={Link} to="/about">
+                    About Us
+                  </Nav.Link>
                 </>
               ) : (
                 <>
@@ -103,6 +110,9 @@ const AppPriv = () => {
                     target="_blank"
                   >
                     Isi Survey
+                  </Nav.Link>
+                  <Nav.Link as={Link} to="/about">
+                    About Us
                   </Nav.Link>
                 </>
               )}

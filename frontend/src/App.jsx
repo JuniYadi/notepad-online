@@ -34,6 +34,9 @@ export const App = () => {
               >
                 Isi Survey
               </Nav.Link>
+              <Nav.Link as={Link} to="/about">
+                About Us
+              </Nav.Link>
             </Nav>
             <Nav>
               <Nav.Link as={Link} to="/app">

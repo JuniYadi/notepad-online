@@ -11,6 +11,7 @@ const UserNotes = lazy(() => import("./pages/user/notes"));
 const UserNotesCreate = lazy(() => import("./pages/user/notes/create"));
 const UserNotesShow = lazy(() => import("./pages/user/notes/show"));
 const AdminNotes = lazy(() => import("./pages/admin/notes"));
+const About = lazy(() => import("./pages/about"));
 
 export const router = createBrowserRouter([
   {
@@ -72,6 +73,10 @@ export const router = createBrowserRouter([
       {
         path: "lists",
         element: <Notes />,
+      },
+      {
+        path: "about",
+        element: <About />,
       },
     ],
   },
