@@ -5,6 +5,7 @@ import { App } from "./App";
 import { AppPrivate } from "./AppPriv";
 import NotFound from "./components/NotFound";
 const Notes = lazy(() => import("./pages/notes"));
+const NotesCreate = lazy(() => import("./pages/notes/create"));
 const NotesShow = lazy(() => import("./pages/notes/show"));
 const UserNotes = lazy(() => import("./pages/user/notes"));
 const UserNotesCreate = lazy(() => import("./pages/user/notes/create"));
@@ -66,7 +67,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Notes />,
+        element: <NotesCreate />,
       },
     ],
   },
