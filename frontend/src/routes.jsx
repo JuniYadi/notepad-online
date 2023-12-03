@@ -3,13 +3,25 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { App } from "./App";
 import { AppPrivate } from "./AppPriv";
+import NotFound from "./components/NotFound";
 const Notes = lazy(() => import("./pages/notes"));
 const NotesShow = lazy(() => import("./pages/notes/show"));
 const UserNotes = lazy(() => import("./pages/user/notes"));
 const UserNotesCreate = lazy(() => import("./pages/user/notes/create"));
 const UserNotesShow = lazy(() => import("./pages/user/notes/show"));
+const AdminNotes = lazy(() => import("./pages/admin/notes"));
 
 export const router = createBrowserRouter([
+  {
+    path: "admin",
+    element: <AppPrivate />,
+    children: [
+      {
+        path: "",
+        element: <AdminNotes />,
+      },
+    ],
+  },
   {
     path: "app",
     element: <AppPrivate />,
@@ -57,5 +69,9 @@ export const router = createBrowserRouter([
         element: <Notes />,
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
