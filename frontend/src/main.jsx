@@ -20,6 +20,9 @@ Amplify.configure({
       region: AWS_REGION,
       userPoolId: AWS_USER_POOL_ID,
       userPoolClientId: AWS_USER_POOL_WEB_CLIENT_ID,
+      loginWith: {
+        email: true,
+      },
     },
   },
 });
