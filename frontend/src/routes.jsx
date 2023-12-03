@@ -69,6 +69,10 @@ export const router = createBrowserRouter([
         path: "",
         element: <NotesCreate />,
       },
+      {
+        path: "lists",
+        element: <Notes />,
+      },
     ],
   },
   {
