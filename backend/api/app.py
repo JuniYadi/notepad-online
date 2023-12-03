@@ -1,7 +1,6 @@
-from chalice import Chalice
+from chalice import Chalice, CognitoUserPoolAuthorizer, Response
 from chalicelib.db import query, store, show
 from chalicelib.id import genID
-from chalice import CognitoUserPoolAuthorizer
 from datetime import datetime
 import time
 import json
@@ -13,11 +12,17 @@ authorizer = CognitoUserPoolAuthorizer(
     provider_arns=['arn:aws:cognito-idp:ap-southeast-1:057675665881:userpool/ap-southeast-1_g76VANI61']
 )
 
+contentTypes = {
+    "array": ['application/json'],
+    "object": {'Content-Type': 'application/json'},
+    "str": 'application/json',
+}
+
 @app.route('/')
 def index():
-    return {'hello': 'world'}
+    return {'message': 'success'}
 
-@app.route('/notes', methods=['POST'], cors=True, content_types=['application/json'])
+@app.route('/notes', methods=['POST'], cors=True, content_types=contentTypes['array'])
 def notes_create():
     body = app.current_request.json_body
 
@@ -60,14 +65,44 @@ def notes_create():
 
 @app.route('/notes/{note_id}', methods=['GET'], cors=True)
 def notes_show(note_id):
-    return show({'pk': 'public', 'sk': note_id})
+    code = 200
+    message = 'success'
+
+    if note_id.find("_") != -1:
+        print("_ found")
+        note_id = note_id.replace("_", "#")
+        data = show({'pk': 'private', 'sk': note_id})
+    else:
+        data = show({'pk': 'public', 'sk': note_id})
+
+    if data == False:
+        code = 404
+        message = 'Note not found'
+        data = None
+        
+    return Response(body={
+        'code': code,
+        'message': message,
+        'data': data
+    }, status_code=code, headers=contentTypes['object'])
 
 @app.route('/v1/notes', methods=['GET'], cors=True, authorizer=authorizer)
 def notes_v1_lists():
     context = app.current_request.context
     userId = context['authorizer']['claims']['sub']
+    userGroups = context['authorizer']['claims']['cognito:groups']
 
-    notes = query('private', userId)
+    if "administrator" in userGroups:
+        params = app.current_request.query_params
+        view = params.get('view', None)
+
+        if view == 'public':
+            notes = query('public')
+        else:
+            userId = params.get('userId', None)
+            notes = query('private', userId)
+    else:
+        notes = query('private', userId)
 
     return {
         'message': 'success', 
@@ -127,6 +162,8 @@ def notes_v1_create():
 def notes_v1_show(note_id):
     context = app.current_request.context
     userId = context['authorizer']['claims']['sub']
+    code = 200
+    message = 'success'
 
     # Check if _ in note_id
     isPublic = note_id.find("_") != -1
@@ -137,7 +174,15 @@ def notes_v1_show(note_id):
     else:
         note = show({'pk': 'private', 'sk': f"{userId}#{note_id}"})
 
-    return json.dumps(note)
+    if note == False:
+        code = 404
+        message = 'Note not found'
+
+    return Response(body={
+        'code': code,
+        'message': message,
+        'data': note
+    }, status_code=code, headers=contentTypes['object'])
 
 @app.route('/v1/notes/{note_id}', methods=['PUT'], cors=True, authorizer=authorizer)
 def notes_v1_update(note_id):
@@ -163,4 +208,3 @@ def notes_v1_delete(note_id):
     return {
         'message': 'success'
     }
-
