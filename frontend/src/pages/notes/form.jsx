@@ -4,6 +4,7 @@ import Button from "react-bootstrap/esm/Button";
 import axios from "axios";
 import useSWR from "swr";
 import { Helmet } from "react-helmet-async";
+import NotFound from "../../components/NotFound";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -60,7 +61,10 @@ export default function NotesForm({ action, id }) {
     }
   };
 
-  const { data } = useSWR(!isEdit ? [`${API_URL}/notes/${id}`] : null);
+  const {
+    data: { data },
+    error,
+  } = useSWR(!isEdit ? [`${API_URL}/notes/${id}`] : null);
 
   useEffect(() => {
     if (action === "show" && data) {
@@ -70,11 +74,16 @@ export default function NotesForm({ action, id }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
+  if (error) {
+    return <NotFound />;
+  }
+
   return (
     <>
       <Helmet>
         <title>{data?.title || APP_NAME}</title>
       </Helmet>
+
       <Form>
         <Form.Group className="mb-3" controlId="title">
           <Form.Label>Title</Form.Label>
@@ -98,10 +107,16 @@ export default function NotesForm({ action, id }) {
         </Form.Group>
 
         {action === "show" && (
-          <p>
-            Expired:{" "}
-            {data?.ttl > 0 ? dayjs.unix(data?.ttl).fromNow() : "Permanent"}
-          </p>
+          <>
+            <p>
+              Expired:{" "}
+              {data?.ttl > 0 ? dayjs.unix(data?.ttl).fromNow() : "Permanent"}
+            </p>
+            <p>
+              Created At: {dayjs(data?.createdAt).format("DD/MM/YYYY HH:mm:ss")}{" "}
+              ({dayjs(data?.createdAt).fromNow()})
+            </p>
+          </>
         )}
 
         {action === "insert" && (
