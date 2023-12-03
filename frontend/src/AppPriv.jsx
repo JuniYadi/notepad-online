@@ -83,6 +83,12 @@ const AppPriv = () => {
                   <Nav.Link as={Link} to="/admin?view=private">
                     Private Notes
                   </Nav.Link>
+                  <Nav.Link
+                    href="https://forms.gle/rQkyMrvbeACoFTny9"
+                    target="_blank"
+                  >
+                    Isi Survey
+                  </Nav.Link>
                 </>
               ) : (
                 <>
@@ -91,6 +97,12 @@ const AppPriv = () => {
                   </Nav.Link>
                   <Nav.Link as={Link} to="/app/create">
                     Create New Note
+                  </Nav.Link>
+                  <Nav.Link
+                    href="https://forms.gle/rQkyMrvbeACoFTny9"
+                    target="_blank"
+                  >
+                    Isi Survey
                   </Nav.Link>
                 </>
               )}

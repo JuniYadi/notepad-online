@@ -25,11 +25,19 @@ export const App = () => {
               <Nav.Link as={Link} to="/">
                 Home
               </Nav.Link>
-              <Nav.Link href="#pricing">My Notes</Nav.Link>
+              <Nav.Link as={Link} to="/lists">
+                My Notes
+              </Nav.Link>
+              <Nav.Link
+                href="https://forms.gle/rQkyMrvbeACoFTny9"
+                target="_blank"
+              >
+                Isi Survey
+              </Nav.Link>
             </Nav>
             <Nav>
               <Nav.Link as={Link} to="/app">
-                Login
+                Login / Register
               </Nav.Link>
             </Nav>
           </Navbar.Collapse>
