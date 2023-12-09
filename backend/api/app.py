@@ -1,5 +1,5 @@
 from chalice import Chalice, CognitoUserPoolAuthorizer, Response
-from chalicelib.db import query, store, show
+from chalicelib.db import query, store, show, update, delete
 from chalicelib.id import genID
 from datetime import datetime
 import time
@@ -89,10 +89,10 @@ def notes_show(note_id):
 @app.route('/v1/notes', methods=['GET'], cors=True, authorizer=authorizer)
 def notes_v1_lists():
     context = app.current_request.context
-    userId = context['authorizer']['claims']['sub']
-    userGroups = context['authorizer']['claims']['cognito:groups']
+    cognito = context['authorizer']['claims']
+    userId = cognito['sub']
 
-    if "administrator" in userGroups:
+    if 'cognito:groups' in cognito and 'administrator' in cognito['cognito:groups']:
         params = app.current_request.query_params
         view = params.get('view', None)
 
@@ -186,7 +186,37 @@ def notes_v1_show(note_id):
 
 @app.route('/v1/notes/{note_id}', methods=['PUT'], cors=True, authorizer=authorizer)
 def notes_v1_update(note_id):
-    return {'notes': 'update'}
+    body = app.current_request.json_body
+    context = app.current_request.context
+    userId = context['authorizer']['claims']['sub']
+
+    # Check if _ in note_id
+    isPublic = note_id.find("_") != -1
+    key = {'pk': 'private', 'sk': f"{userId}#{note_id}"} if not isPublic else {'pk': 'private', 'sk': note_id.replace("_", "#")}
+
+    data = {
+        'Key': key,
+        'UpdateExpression': 'SET #title = :title, #content = :content, #updatedAt = :updatedAt',
+        'ExpressionAttributeNames': {
+            '#title': 'title',
+            '#content': 'content',
+            '#updatedAt': 'updatedAt'
+        },
+        'ExpressionAttributeValues': {
+            ':title': body['title'],
+            ':content': body['content'],
+            ':updatedAt': datetime.now().isoformat()
+        }
+    }
+
+    query = update(data)
+
+    if query == False:
+        return {'message': 'Error updating note'}
+
+    return {
+        'message': 'success'
+    }
 
 @app.route('/v1/notes/{note_id}', methods=['DELETE'], cors=True, authorizer=authorizer)
 def notes_v1_delete(note_id):
@@ -198,9 +228,9 @@ def notes_v1_delete(note_id):
 
     if isPublic:
         note_id = note_id.replace("_", "#")
-        note = show({'pk': 'private', 'sk': note_id})
+        note = delete({'pk': 'private', 'sk': note_id})
     else:
-        note = show({'pk': 'private', 'sk': f"{userId}#{note_id}"})
+        note = delete({'pk': 'private', 'sk': f"{userId}#{note_id}"})
 
     if note is None:
         return {'message': 'Note not found'}

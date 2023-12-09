@@ -14,6 +14,10 @@ def query(pk, sk=None):
         query = table.query(
           KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk)
         )
+
+      # Check if Items is empty or not
+      if len(query['Items']) == 0:
+        return []
       
       # Delete Object from response
       for item in query['Items']:
@@ -45,3 +49,23 @@ def show(data):
     del query['Item']['sk']
 
     return query['Item']
+
+def update(data):
+    try:
+      table.update_item(Key=data['Key'],
+                        UpdateExpression=data['UpdateExpression'], 
+                        ExpressionAttributeNames=data['ExpressionAttributeNames'],
+                        ExpressionAttributeValues=data['ExpressionAttributeValues']
+                      )
+      return True
+    except Exception as e:
+      print(f"Error Updating Data: {e}")
+      return False
+
+def delete(data):
+    try:
+      table.delete_item(Key=data)
+      return True
+    except Exception as e:
+      print(f"Error Deleting Data: {e}")
+      return False
