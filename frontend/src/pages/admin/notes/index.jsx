@@ -76,7 +76,7 @@ export default function AdminNotes() {
                       : `/p/${note.id}`
                   }
                 >
-                  View
+                  <a className="btn btn-sm btn-primary">View</a>
                 </Link>
               </td>
             </tr>
