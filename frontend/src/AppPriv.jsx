@@ -13,11 +13,11 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { Outlet } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 import { APP_NAME } from "./statics";
 
 const AppPriv = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState({
     username: "",
     email: "",
@@ -57,8 +57,9 @@ const AppPriv = () => {
         tokens: idToken?.toString(),
       });
 
-      if (groups.includes("administrator")) {
-        window.location.href = "/admin?view=public";
+      const currentUrl = window.location.href;
+      if (!currentUrl.includes("admin") && groups.includes("administrator")) {
+        navigate("/admin?view=public");
       }
     };
 
