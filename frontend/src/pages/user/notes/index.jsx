@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { UserContext } from "../../../contexts";
 import { Helmet } from "react-helmet-async";
-import { Table } from "react-bootstrap";
+import { Button, Table } from "react-bootstrap";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -25,13 +25,40 @@ export default function UserNotes() {
     user && user.tokens ? [`${API_URL}/v1/notes`, user.tokens, null] : null
   );
 
+  const onDelete = async (id, e) => {
+    e.preventDefault();
+
+    try {
+      if (confirm("Are you sure to delete this note?")) {
+        const res = await fetch(`${API_URL}/v1/notes/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${user.tokens}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log(data);
+        } else {
+          const data = await res.json();
+          console.log(data);
+        }
+      } else {
+        alert("Delete cancelled");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <>
       <Helmet>
         <title>{`My Notes - ${APP_NAME}`}</title>
       </Helmet>
 
-      <h3>My Notes</h3>
+      <h3>My Private Notes</h3>
 
       <Table striped bordered hover>
         <thead>
@@ -39,6 +66,7 @@ export default function UserNotes() {
             <th>ID</th>
             <th>Title</th>
             <th>Status</th>
+            <th>Created At</th>
             <th>Expired</th>
             <th>Action</th>
           </tr>
@@ -50,6 +78,11 @@ export default function UserNotes() {
               <td>{note.title}</td>
               <td>{note.status}</td>
               <td>
+                {dayjs(note.createdAt)
+                  .tz(dayjs.tz.guess())
+                  .format("YYYY-MM-DD HH:mm:ss")}
+              </td>
+              <td>
                 {note?.ttl ? dayjs.unix(note.ttl).fromNow() : "Permanent"}
               </td>
               <td>
@@ -60,8 +93,16 @@ export default function UserNotes() {
                       : `/p/${note.id}`
                   }
                 >
-                  View
+                  <a className="btn btn-sm btn-primary m-1">View</a>
                 </Link>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  className="m-1"
+                  onClick={(e) => onDelete(note.id, e)}
+                >
+                  Delete
+                </Button>
               </td>
             </tr>
           ))}

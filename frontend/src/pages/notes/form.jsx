@@ -111,10 +111,17 @@ export default function NotesForm({ action, id }) {
                 ? dayjs.unix(data?.data?.ttl).fromNow()
                 : "Permanent"}
             </p>
+
             <p>
               Created At:{" "}
               {dayjs(data?.data?.createdAt).format("DD/MM/YYYY HH:mm:ss")} (
               {dayjs(data?.data?.createdAt).fromNow()})
+            </p>
+
+            <p>
+              Updated At:{" "}
+              {dayjs(data?.data?.updatedAt).format("DD/MM/YYYY HH:mm:ss")} (
+              {dayjs(data?.data?.updatedAt).fromNow()})
             </p>
           </>
         )}
@@ -168,30 +175,6 @@ export default function NotesForm({ action, id }) {
             onClick={submitForm}
           >
             Save {loading && "..."}
-          </Button>
-        )}
-
-        {readOnly && data?.data?.status !== "public" && (
-          <Button
-            variant="warning"
-            onClick={() => {
-              setReadOnly(false);
-              setIsEdit(true);
-            }}
-          >
-            Edit
-          </Button>
-        )}
-
-        {isEdit && (
-          <Button
-            variant="success"
-            onClick={() => {
-              setReadOnly(false);
-              setIsEdit(true);
-            }}
-          >
-            Update {loading && "..."}
           </Button>
         )}
       </Form>

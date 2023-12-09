@@ -5,6 +5,7 @@ import axios from "axios";
 import useSWR from "swr";
 import { Helmet } from "react-helmet-async";
 import NotFound from "../../../components/NotFound";
+import { useNavigate } from "react-router-dom";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -22,6 +23,7 @@ import { UserContext } from "../../../contexts";
 
 export default function NotesForm({ action, id }) {
   const user = useContext(UserContext);
+  const navigate = useNavigate();
   const [notes, setNotes] = useState({
     title: "",
     content: "",
@@ -38,39 +40,56 @@ export default function NotesForm({ action, id }) {
 
     setLoading(true);
     const url = notes.isPublic ? `/p` : `/v`;
-
-    const reqs = await axios.post(API_URL + "/v1/notes", notes, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.tokens}`,
-      },
-    });
-
-    if (reqs.status === 200) {
-      setNotes({
-        title: "",
-        content: "",
-        ttl: "",
+    if (isEdit) {
+      const reqs = await axios.put(API_URL + "/v1/notes/" + id, notes, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.tokens}`,
+        },
       });
 
-      setLoading(false);
+      if (reqs.status === 200) {
+        setLoading(false);
+        setIsEdit(false);
+        setReadOnly(true);
 
-      // get id from response
-      const id = reqs?.data?.data?.id;
-
-      // redirect to view page
-      window.location.href = `${url}/${id}`;
+        // redirect to view page
+        navigate(`${url}/${id}`);
+      } else {
+        alert("Failed to update");
+      }
     } else {
-      alert("Failed");
+      const reqs = await axios.post(API_URL + "/v1/notes", notes, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.tokens}`,
+        },
+      });
+
+      if (reqs.status === 200) {
+        setNotes({
+          title: "",
+          content: "",
+          ttl: "",
+        });
+
+        setLoading(false);
+
+        // get id from response
+        const id = reqs?.data?.data?.id;
+
+        // redirect to view page
+        navigate(`${url}/${id}`);
+      } else {
+        alert("Failed");
+      }
     }
   };
 
-  const {
-    data: { data },
-    error,
-  } = useSWR(
-    !isEdit && user && user.tokens
+  const { data, error } = useSWR(
+    action !== "insert" && user && user.tokens
       ? [`${API_URL}/v1/notes/${id}`, user.tokens]
       : null
   );
@@ -80,17 +99,26 @@ export default function NotesForm({ action, id }) {
       setReadOnly(true);
     }
 
+    if (data) {
+      setNotes({
+        title: data?.data?.title,
+        content: data?.data?.content,
+        ttl: data?.data?.ttl,
+        status: data?.data?.status,
+      });
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  if (error) {
+  if (action !== "insert" && error) {
     return <NotFound />;
   }
 
   return (
     <>
       <Helmet>
-        <title>{data?.title || APP_NAME}</title>
+        <title>{data?.data?.title || APP_NAME}</title>
       </Helmet>
 
       <Form>
@@ -99,7 +127,7 @@ export default function NotesForm({ action, id }) {
           <Form.Control
             type="text"
             placeholder="My Random Notes"
-            value={data?.title}
+            defaultValue={data?.data?.title}
             disabled={readOnly}
             onChange={(e) => setNotes({ ...notes, title: e.target.value })}
           />
@@ -110,84 +138,101 @@ export default function NotesForm({ action, id }) {
             as="textarea"
             rows={10}
             disabled={readOnly}
-            value={data?.content}
+            defaultValue={data?.data?.content}
             onChange={(e) => setNotes({ ...notes, content: e.target.value })}
           />
-        </Form.Group>
-
-        <Form.Group className="mb-3" controlId="status">
-          <Form.Label>Status</Form.Label>
-          <Form.Select
-            aria-label="Select Status"
-            disabled={readOnly}
-            onChange={(e) =>
-              setNotes({
-                ...notes,
-                status: e.target.value,
-              })
-            }
-          >
-            <option value="private" selected={data?.status === "private"}>
-              Not Public (Private)
-            </option>
-            <option value="public" selected={data?.status === "public"}>
-              Public
-            </option>
-          </Form.Select>
         </Form.Group>
 
         {action === "show" && (
           <>
             <p>
               Expired:{" "}
-              {data?.ttl > 0 ? dayjs.unix(data?.ttl).fromNow() : "Permanent"}
+              {data?.data?.ttl > 0
+                ? dayjs.unix(data?.data?.ttl).fromNow()
+                : "Permanent"}
             </p>
             <p>
-              Created At: {dayjs(data?.createdAt).format("DD/MM/YYYY HH:mm:ss")}{" "}
-              ({dayjs(data?.createdAt).fromNow()})
+              Created At:{" "}
+              {dayjs(data?.data?.createdAt).format("DD/MM/YYYY HH:mm:ss")} (
+              {dayjs(data?.data?.createdAt).fromNow()})
+            </p>
+
+            <p>
+              Updated At:{" "}
+              {dayjs(data?.data?.updatedAt).format("DD/MM/YYYY HH:mm:ss")} (
+              {dayjs(data?.data?.updatedAt).fromNow()})
             </p>
           </>
         )}
 
         {action === "insert" && (
-          <Form.Group className="mb-3" controlId="expired">
-            <Form.Label>Expired</Form.Label>
-            <Form.Select
-              aria-label="Select Expired"
-              disabled={readOnly}
-              onChange={(e) =>
-                setNotes({
-                  ...notes,
-                  ttl: e.target.value,
-                })
-              }
-            >
-              <option value="5" selected={data?.ttl === 5}>
-                5 Minutes
-              </option>
-              <option value="15" selected={data?.ttl === 15}>
-                15 Minutes
-              </option>
-              <option value="30" selected={data?.ttl === 30}>
-                30 Minutes
-              </option>
-              <option value="60" selected={data?.ttl === 60}>
-                1 Hour
-              </option>
-              <option value="1440" selected={data?.ttl === 1440}>
-                1 Day
-              </option>
-              <option value="10080" selected={data?.ttl === 10080}>
-                1 Week
-              </option>
-              <option value="43200" selected={data?.ttl === 43200}>
-                1 Month
-              </option>
-              <option value="0" selected={!data?.ttl}>
-                Permanent
-              </option>
-            </Form.Select>
-          </Form.Group>
+          <>
+            <Form.Group className="mb-3" controlId="status">
+              <Form.Label>Status</Form.Label>
+              <Form.Select
+                aria-label="Select Status"
+                disabled={readOnly}
+                onChange={(e) =>
+                  setNotes({
+                    ...notes,
+                    status: e.target.value,
+                  })
+                }
+              >
+                <option
+                  value="private"
+                  selected={data?.data?.status === "private"}
+                >
+                  Not Public (Private)
+                </option>
+                <option
+                  value="public"
+                  selected={data?.data?.status === "public"}
+                >
+                  Public
+                </option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="expired">
+              <Form.Label>Expired</Form.Label>
+              <Form.Select
+                aria-label="Select Expired"
+                disabled={readOnly}
+                onChange={(e) =>
+                  setNotes({
+                    ...notes,
+                    ttl: e.target.value,
+                  })
+                }
+              >
+                <option value="5" selected={data?.data?.ttl === 5}>
+                  5 Minutes
+                </option>
+                <option value="15" selected={data?.data?.ttl === 15}>
+                  15 Minutes
+                </option>
+                <option value="30" selected={data?.data?.ttl === 30}>
+                  30 Minutes
+                </option>
+                <option value="60" selected={data?.data?.ttl === 60}>
+                  1 Hour
+                </option>
+                <option value="1440" selected={data?.data?.ttl === 1440}>
+                  1 Day
+                </option>
+                <option value="10080" selected={data?.data?.ttl === 10080}>
+                  1 Week
+                </option>
+                <option value="43200" selected={data?.data?.ttl === 43200}>
+                  1 Month
+                </option>
+                <option value="0" selected={!data?.data?.ttl}>
+                  Permanent
+                </option>
+              </Form.Select>
+            </Form.Group>
+          </>
         )}
 
         {!readOnly && !isEdit && (
@@ -201,7 +246,7 @@ export default function NotesForm({ action, id }) {
           </Button>
         )}
 
-        {readOnly && data?.status !== "public" && (
+        {readOnly && data?.data?.status !== "public" && (
           <Button
             variant="warning"
             onClick={() => {
@@ -214,13 +259,7 @@ export default function NotesForm({ action, id }) {
         )}
 
         {isEdit && (
-          <Button
-            variant="success"
-            onClick={() => {
-              setReadOnly(false);
-              setIsEdit(true);
-            }}
-          >
+          <Button variant="success" onClick={submitForm}>
             Update {loading && "..."}
           </Button>
         )}
