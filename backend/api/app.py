@@ -140,6 +140,7 @@ def notes_v1_create():
         'pk': 'private',
         'sk': sk,
         'id': idPub,
+        'userId': userId,
         'status': body['status'],
         'title': body['title'],
         'content': body['content'],
@@ -194,6 +195,15 @@ def notes_v1_update(note_id):
     isPublic = note_id.find("_") != -1
     key = {'pk': 'private', 'sk': f"{userId}#{note_id}"} if not isPublic else {'pk': 'private', 'sk': note_id.replace("_", "#")}
 
+    # Check if note exists
+    note = show(key)
+
+    if note == False:
+        return {'message': 'Note not found'}
+    
+    if note['userId'] != userId:
+        return {'message': 'Unauthorized'}
+
     data = {
         'Key': key,
         'UpdateExpression': 'SET #title = :title, #content = :content, #updatedAt = :updatedAt',
@@ -221,19 +231,39 @@ def notes_v1_update(note_id):
 @app.route('/v1/notes/{note_id}', methods=['DELETE'], cors=True, authorizer=authorizer)
 def notes_v1_delete(note_id):
     context = app.current_request.context
-    userId = context['authorizer']['claims']['sub']
+    cognito = context['authorizer']['claims']
+    userId = cognito['sub']
+    isAdmin = False
 
     # Check if _ in note_id
     isPublic = note_id.find("_") != -1
+    key = {'pk': 'private', 'sk': f"{userId}#{note_id}"} if not isPublic else {'pk': 'private', 'sk': note_id.replace("_", "#")}
 
-    if isPublic:
-        note_id = note_id.replace("_", "#")
-        note = delete({'pk': 'private', 'sk': note_id})
-    else:
-        note = delete({'pk': 'private', 'sk': f"{userId}#{note_id}"})
+    if 'cognito:groups' in cognito and 'administrator' in cognito['cognito:groups']:
+        params = app.current_request.query_params
+        userId = params.get('userId', None)
+        view = params.get('view', None)
 
-    if note is None:
+        if userId is None:
+            return {'message': 'Missing userId'}
+        
+        if view == 'public':
+            key = {'pk': 'public', 'sk': note_id}
+
+    print(key)
+    note = show(key)
+
+    if note == False or note is None:
         return {'message': 'Note not found'}
+    
+    if view != 'public' and isAdmin == False:
+        if note['userId'] != userId:
+            return {'message': 'Unauthorized'}
+    
+    query = delete(key)
+
+    if query == False:
+        return {'message': 'Error deleting note'}
     
     return {
         'message': 'success'

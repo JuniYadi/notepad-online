@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { UserContext } from "../../../contexts";
 import { Helmet } from "react-helmet-async";
-import { Table } from "react-bootstrap";
+import { Table, Button } from "react-bootstrap";
 import { Link, useSearchParams } from "react-router-dom";
 import qs from "query-string";
 
@@ -37,6 +37,36 @@ export default function AdminNotes() {
         ]
       : null
   );
+
+  const onDelete = async (user_id, id, e) => {
+    e.preventDefault();
+
+    const genUrl = `${API_URL}/v1/notes/${id}?userId=${user_id}`;
+    const url = view === "public" ? `${genUrl}&view=public` : `${genUrl}`;
+
+    try {
+      if (confirm("Are you sure to delete this note?")) {
+        const res = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${user.tokens}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log(data);
+        } else {
+          const data = await res.json();
+          console.log(data);
+        }
+      } else {
+        alert("Delete cancelled");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <>
@@ -76,8 +106,16 @@ export default function AdminNotes() {
                       : `/p/${note.id}`
                   }
                 >
-                  <a className="btn btn-sm btn-primary">View</a>
+                  <a className="btn btn-sm btn-primary m-1">View</a>
                 </Link>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  className="m-1"
+                  onClick={(e) => onDelete(note.userId, note.id, e)}
+                >
+                  Delete
+                </Button>
               </td>
             </tr>
           ))}

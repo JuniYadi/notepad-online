@@ -31,7 +31,7 @@ const AppPriv = () => {
     e.preventDefault();
 
     await signOut();
-    window.location.href = "/app/notes";
+    window.location.href = "/app";
   };
 
   useEffect(() => {
@@ -58,7 +58,10 @@ const AppPriv = () => {
       });
 
       const currentUrl = window.location.href;
-      if (!currentUrl.includes("admin") && groups.includes("administrator")) {
+      if (
+        !["v", "p", "admin"].includes(currentUrl) &&
+        groups.includes("administrator")
+      ) {
         navigate("/admin?view=public");
       }
     };
