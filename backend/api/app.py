@@ -161,23 +161,35 @@ def notes_v1_create():
 
 @app.route('/v1/notes/{note_id}', methods=['GET'], cors=True, authorizer=authorizer)
 def notes_v1_show(note_id):
-    context = app.current_request.context
-    userId = context['authorizer']['claims']['sub']
+    
     code = 200
     message = 'success'
+    
+    context = app.current_request.context
+    cognito = context['authorizer']['claims']
+    userId = cognito['sub']
+    isAdmin = False
 
+    if 'cognito:groups' in cognito and 'administrator' in cognito['cognito:groups']:
+        params = app.current_request.query_params
+        userId = params.get('userId', None)
+
+        if userId is None:
+            return {'message': 'Missing userId'}
+        
     # Check if _ in note_id
     isPublic = note_id.find("_") != -1
+    key = {'pk': 'private', 'sk': f"{userId}#{note_id}"} if not isPublic else {'pk': 'private', 'sk': note_id.replace("_", "#")}
 
-    if isPublic:
-        note_id = note_id.replace("_", "#")
-        note = show({'pk': 'private', 'sk': note_id})
-    else:
-        note = show({'pk': 'private', 'sk': f"{userId}#{note_id}"})
+    note = show(key)
 
-    if note == False:
+    if note == False or note is None:
         code = 404
         message = 'Note not found'
+    
+    if isAdmin == False and note['userId'] != userId:
+        code = 403
+        message = 'Unauthorized'
 
     return Response(body={
         'code': code,
@@ -250,7 +262,6 @@ def notes_v1_delete(note_id):
         if view == 'public':
             key = {'pk': 'public', 'sk': note_id}
 
-    print(key)
     note = show(key)
 
     if note == False or note is None:
