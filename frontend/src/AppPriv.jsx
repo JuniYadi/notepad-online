@@ -57,12 +57,19 @@ const AppPriv = () => {
         tokens: idToken?.toString(),
       });
 
-      const currentUrl = window.location.href;
-      if (
-        !["v", "p", "admin"].includes(currentUrl) &&
-        groups.includes("administrator")
-      ) {
-        navigate("/admin?view=public");
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith("/admin")) {
+        if (groups.includes("administrator")) {
+          navigate("/admin?view=public");
+        } else {
+          navigate("/app");
+        }
+      } else if (currentPath.startsWith("/app")) {
+        if (groups.includes("administrator")) {
+          navigate("/admin?view=public");
+        } else {
+          navigate("/app");
+        }
       }
     };
 

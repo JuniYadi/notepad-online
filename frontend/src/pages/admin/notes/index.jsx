@@ -102,7 +102,7 @@ export default function AdminNotes() {
                   target="_blank"
                   to={
                     note.status === "private"
-                      ? `/v/${note.id}`
+                      ? `/v/${note.id}?userId=${note?.userId}`
                       : `/p/${note.id}`
                   }
                 >
